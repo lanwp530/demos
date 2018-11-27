@@ -6,7 +6,6 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 
 /**
  * description:
@@ -14,12 +13,12 @@ import java.net.SocketAddress;
  * @author lanwp
  * @date 2018/11/26 12:47
  */
-public class SockerServiceSingle {
+public class SockerServerSingle {
 
     private static final int PRORT = 20000;
 
     public static void main(String[] args) throws IOException {
-        SockerServiceSingle demo = new SockerServiceSingle();
+        SockerServerSingle demo = new SockerServerSingle();
         ServerSocket server = demo.createServerSocketDefault(PRORT);
         Socket socket = null;
         while ((socket = server.accept()) != null) {

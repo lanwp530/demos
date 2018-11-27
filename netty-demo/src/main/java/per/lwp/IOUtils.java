@@ -10,10 +10,11 @@ import java.io.IOException;
  * @date 2018/11/26 13:25
  */
 public class IOUtils {
-    public static void close(Closeable stream) {
-        if (stream != null) {
+
+    public static void close(Closeable closeable) {
+        if (closeable != null) {
             try {
-                stream.close();
+                closeable.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
