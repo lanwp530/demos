@@ -8,7 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * description:
+ * description: 写实际的服务端和客户端需要解决socket半包、粘包问题
  *
  * @author lanwp
  * @date 2018/11/27 9:47

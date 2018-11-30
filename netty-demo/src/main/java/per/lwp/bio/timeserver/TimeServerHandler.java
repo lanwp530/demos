@@ -26,6 +26,9 @@ public class TimeServerHandler implements Runnable{
         this.socket = socket;
     }
 
+    /**
+     * readLine 都是需要内容带换行符
+     */
     @Override
     public void run() {
 
@@ -33,7 +36,7 @@ public class TimeServerHandler implements Runnable{
         PrintWriter out = null;
 
         try {
-            // 输出后自动flush发信息
+            // 输出后自动flush发信息(autoFlush=true,自动刷新功能针对的是println方法,print方法无效)
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -47,7 +50,7 @@ public class TimeServerHandler implements Runnable{
             }*/
             // 读取到的内容为null跳出循环
             while ((reqBody = in.readLine()) != null) {
-                System.out.println(String.format("The time server recive order : %s", reqBody));
+                System.out.println(String.format("The time server receive order : %s", reqBody));
                 currentTime = "query time order".equalsIgnoreCase(reqBody) ? new Date().toString() : "BAD ORDER";
                 out.println(currentTime);
             }

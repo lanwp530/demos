@@ -1,30 +1,26 @@
 package per.lwp.nio;
 
-import per.lwp.ArrayUtils;
-import per.lwp.IOUtils;
-import per.lwp.bio.timeserver.TimeServerHandler;
-
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
-import java.nio.channels.spi.SelectorProvider;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
 /**
- * description: 写实际的服务端和客户端需要解决socket半包、粘包问题
+ * description:
  *
  * @author lanwp
  * @date 2018/11/27 9:47
  */
-public class TimeNioServer implements Runnable{
+public class TimeNioClient implements Runnable{
 
-    private ServerSocketChannel serverSocketChannel;
+    private SocketChannel clientChannel;
 
     private Selector selector;
 
@@ -32,27 +28,44 @@ public class TimeNioServer implements Runnable{
     // 自定义默认backlog
     private static final int BACKLOG = 1024;
 
-    public TimeNioServer(int port) {
+    private String host;
+    private int port;
+
+    private static final String LOCAL_HOST = "127.0.0.1";
+
+    public TimeNioClient(String host, int port) {
+        this.host = host == null ? LOCAL_HOST : host;
+        this.port = port;
         try {
             // 1. 打开服务器管道ServerSocketChannel
-            serverSocketChannel = ServerSocketChannel.open();
+            clientChannel = SocketChannel.open();
 
-            // 2. 监听端口 InetAddress.getByName("IP"); 默认BACKLOG=50
-            serverSocketChannel.socket().bind(new InetSocketAddress(port), BACKLOG);
+            // 2. 配置
             // 设置为非阻塞
-            serverSocketChannel.configureBlocking(false);
+            clientChannel.configureBlocking(false);
+            Socket socket = clientChannel.socket();
             // 重用
-            serverSocketChannel.socket().setReuseAddress(true);
+            socket.setReuseAddress(true);
+//            System.out.println(socket.getReceiveBufferSize());  // 默认65536 64k
+//            System.out.println(socket.getSendBufferSize());  // 默认65536  64k
+//            socket.setReceiveBufferSize(8192);
+//            socket.setSendBufferSize(8192);
 
-            // 3. 创建selector-选择器   Selector.open() 使用 SelectorProvider.provider().openSelector()
             this.selector = Selector.open();
-
-            serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        // IOUtils.close(serverSocketChannel); 不用关闭通道,否则外部访问不可用
+    }
+
+    public void doConnect() throws IOException {
+        boolean connected = clientChannel.connect(new InetSocketAddress(this.host, this.port));
+        if (connected) {
+            clientChannel.register(selector, SelectionKey.OP_READ);
+            doWrite(clientChannel, "QUERY TIME ORDER");
+        } else {
+            clientChannel.register(selector, SelectionKey.OP_CONNECT);
+        }
     }
 
     public void stop() {
@@ -61,6 +74,13 @@ public class TimeNioServer implements Runnable{
 
     @Override
     public void run() {
+
+        try {
+            doConnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         while (!stop) {
             try {
                 // 实际使用this.selector.select() 可以参考netty实现
@@ -81,13 +101,13 @@ public class TimeNioServer implements Runnable{
                                 key.channel().close();
                             }
                         }
-                        // 远程断开时打印异常
-//                        e.printStackTrace(); // java.io.IOException: 远程主机强迫关闭了一个现有的连接
                     }
-
+                    // 远程断开时打印异常
+//                        e.printStackTrace(); // java.io.IOException: 远程主机强迫关闭了一个现有的连接
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                System.exit(1);
             }
         }
 
@@ -103,19 +123,20 @@ public class TimeNioServer implements Runnable{
 
     public void handle(SelectionKey key) throws IOException{
         if (key.isValid()) {
-            // 处理新接进来的请求
-            if (key.isAcceptable()) {
-                //  add  new connection
-                ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
-                SocketChannel socketChannel = serverSocketChannel.accept();
-                socketChannel.configureBlocking(false);
-                // 注册OP_READ读事件
-                socketChannel.register(selector, SelectionKey.OP_READ);
+            // 判断是否连接成功
+            SocketChannel socketChannel = (SocketChannel) key.channel();
+            if (key.isConnectable()) {
+                if (socketChannel.finishConnect()) {
+                    // 注册OP_READ读事件
+                    socketChannel.register(selector, SelectionKey.OP_READ);
+                    doWrite(clientChannel, "QUERY TIME ORDER");
+                } else {
+                    System.exit(1);
+                }
             }
 
             if (key.isReadable()) {
                 // read data
-                SocketChannel socketChannel = (SocketChannel) key.channel();
                 // 获取(分配)内存
                 ByteBuffer readBuffer = ByteBuffer.allocate(1024);
                 int readBytes = socketChannel.read(readBuffer);
@@ -126,9 +147,12 @@ public class TimeNioServer implements Runnable{
                     readBuffer.get(bytes);
                     String reqBody = new String(bytes, "UTF-8");
 
-                    System.out.println(String.format("The time server receive order : %s", reqBody));
-                    String currentTime = "query time order".equalsIgnoreCase(reqBody) ? new Date().toString() : "BAD ORDER";
-                    doWrite(socketChannel, currentTime);
+                    System.out.println(String.format("Recived from the server time: %s", reqBody));
+                    this.stop = true;
+                } else if (readBytes < 0) {
+                    // 对端链路关闭
+                    key.cancel();
+                    socketChannel.close();
                 }
             }
 
@@ -143,13 +167,16 @@ public class TimeNioServer implements Runnable{
     }
 
     // nio都是基于Buffer
-    public void doWrite(SocketChannel socketChannel, String response) throws IOException {
-        if (response != null && response.trim().length() > 0) {
-            byte[] writeBytes = response.getBytes();
+    public void doWrite(SocketChannel socketChannel, String req) throws IOException {
+        if (req != null && req.trim().length() > 0) {
+            byte[] writeBytes = req.getBytes();
             ByteBuffer writeBuffer = ByteBuffer.allocate(writeBytes.length);
             writeBuffer.put(writeBytes);
             writeBuffer.flip(); // 翻转
             socketChannel.write(writeBuffer);
+            if (!writeBuffer.hasRemaining()) {
+                System.out.println("send order 2 server success !");
+            }
         }
     }
 }
