@@ -32,6 +32,8 @@ public class SwaggerConfig {
                 .securitySchemes(createSecuritySchemeList())
 //                .pathMapping("/")
                 .select()
+                // 指定当前包路径，这里就添加了两个包，注意方法变成了basePackage，中间加上成员变量splitor
+                // .apis(basePackage("com.XX.api.controller.broad;com.XX.api.controller.village"))
                 .apis(RequestHandlerSelectors.basePackage("com.example.lwp.swagger2.swagger2authdemo.controller"))
                 .paths(PathSelectors.any())
                 .build();
