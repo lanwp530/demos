@@ -28,8 +28,10 @@ public class HelloController {
         return "hello1 " + username;
     }
 
-    @PostMapping("/helloUser")
-    @ApiOperation("hello user 用户对象接口")
+//    @PostMapping("/helloUser")
+    @PostMapping(value = "/helloUser", name = "Hello用户")
+//    @ApiOperation("hello user 用户对象接口")
+    @ApiOperation(value = "接口标题：hello user 用户对象接口", tags = {"tag1", "tag2"}, notes = "notes content 接口描述内容")
     public User helloUser(User user){
         System.out.println("hello " + user.toString());
         return user;
