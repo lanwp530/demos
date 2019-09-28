@@ -1,33 +1,26 @@
 package com.example.lwp.swagger2.swagger2authdemo.config;
 
-import com.google.common.collect.Lists;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.*;
-import springfox.documentation.schema.ModelRef;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger.web.SecurityConfiguration;
-import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
-
 /**
- * SwaggerBootstrapUI 不能开启授权
  * @author lanwp
  * @Date 2019/9/17 7:53
  */
-@Configuration
-@EnableSwagger2
+//@Configuration
+//@EnableSwagger2
 //@EnableSwaggerBootstrapUI
-public class SwaggerConfig {
+public class SwaggerApiKeyConfig {
 
     @Bean
     public Docket createRestApi() {
@@ -39,6 +32,7 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.basePackage("com.example.lwp.swagger2.swagger2authdemo.controller"))
                 .paths(PathSelectors.any())
                 .build()
+                .securitySchemes(securitySchemes())
                 ;
         return docket;
     }
@@ -52,5 +46,24 @@ public class SwaggerConfig {
 //                        .license("The Apache License")
 //                        .licenseUrl("http://www.baidu.com")
                 .build();
+    }
+
+    /**
+     * SecurityScheme 子类 BasicAuth OAuth ApiKey
+     * @return
+     */
+    private List<SecurityScheme> securitySchemes(){
+        List<SecurityScheme> list = new ArrayList<>();
+        // basicAuth SwaggerBootstrapUI支持的不好,使用swagger原生UI
+        list.add(new BasicAuth("basicAuth"));
+
+        // name 为参数名  keyname是页面传值显示的 keyname， name在swagger鉴权中使用
+        list.add(new ApiKey("access_token", "access_token", "header"));
+//        list.add(new ApiKey("query_token鉴权值-参数名称", "query_token", "query"));
+
+//        new OAuthBuilder().name().grantTypes().scopes();
+        //public OAuth(String name, List<AuthorizationScope> scopes, List<GrantType> grantTypes)
+//        list.add(new OAuth("query_token鉴权值-参数名称", "query_token", "query"));
+        return list;
     }
 }

@@ -1,33 +1,29 @@
 package com.example.lwp.swagger2.swagger2authdemo.config;
 
-import com.google.common.collect.Lists;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.*;
-import springfox.documentation.schema.ModelRef;
-import springfox.documentation.service.*;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.BasicAuth;
+import springfox.documentation.service.Contact;
+import springfox.documentation.service.SecurityScheme;
 import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger.web.SecurityConfiguration;
-import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
-
 /**
- * SwaggerBootstrapUI 不能开启授权
  * @author lanwp
  * @Date 2019/9/17 7:53
  */
-@Configuration
-@EnableSwagger2
+//@Configuration
+//@EnableSwagger2
 //@EnableSwaggerBootstrapUI
-public class SwaggerConfig {
+public class SwaggerBasicAuthConfig {
 
     @Bean
     public Docket createRestApi() {
@@ -39,6 +35,7 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.basePackage("com.example.lwp.swagger2.swagger2authdemo.controller"))
                 .paths(PathSelectors.any())
                 .build()
+                .securitySchemes(securitySchemes())
                 ;
         return docket;
     }
@@ -52,5 +49,16 @@ public class SwaggerConfig {
 //                        .license("The Apache License")
 //                        .licenseUrl("http://www.baidu.com")
                 .build();
+    }
+
+    /**
+     * SecurityScheme 子类 BasicAuth OAuth ApiKey
+     * @return
+     */
+    private List<SecurityScheme> securitySchemes(){
+        List<SecurityScheme> list = new ArrayList<>();
+        // basicAuth SwaggerBootstrapUI支持的不好,使用swagger原生UI
+        list.add(new BasicAuth("basicAuth"));
+        return list;
     }
 }
