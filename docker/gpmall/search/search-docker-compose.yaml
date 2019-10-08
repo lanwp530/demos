@@ -1,0 +1,50 @@
+version: '3'
+services:
+  elasticsearch:
+    image: elasticsearch:6.8.2
+    ports:
+      - 9200:9200
+      - 9300:9300
+    restart: always
+#    command: bash bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.8.2/elasticsearch-analysis-ik-6.8.2.zip
+    environment:
+      "discovery.type": single-node
+  kibana:
+    image: kibana:6.8.2
+    ports:
+      - 5601:5601
+    restart: always
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch
+  logstash:
+    image: dimmaryanto93/logstash-input-jdbc-mysql:6.6.0
+#    container_name: logstash
+    ports:
+      - 5044:5044
+      - 9600:9600
+    restart: always
+    depends_on:
+      - elasticsearch
+    volumes:
+      - /root/logstash-input-jdbc.conf:/usr/share/logstash/pipeline/logstash.conf
+
+
+#  web:
+#    build: ../../docker-compose
+#    ports:
+#      - "5000:5000"
+#    volumes:
+#      - .:/code
+#    environment:
+#      FLASK_ENV: development
+#  redis:
+#    image: "redis:alpine"
+
+
+#    docker run --name elasticsearch  -d -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" --restart always elasticsearch:6.8.2
+#    docker run -d --name kibana -p 5601:5601 --link elasticsearch:elasticsearch --restart always kibana:6.8.2
+#  docker run -d --name kibana -p 5601:5601 -e ELASTICSEARCH_HOSTS=http://172.26.43.37:9200 --restart always kibana:6.8.2
+#    docker run --name logstash6-mysql -p 9600:9600 -p 5044:5044 -v /root/logstash-input-jdbc.conf:/usr/share/logstash/pipeline/logstash.conf --restart always -d dimmaryanto93/logstash-input-jdbc-mysql:6.6.0
+
