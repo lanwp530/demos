@@ -9,7 +9,7 @@ import lombok.Data;
  * @Date 2019/9/21 8:01
  */
 @Data
-@ApiModel
+
 public class User {
     private Integer id;
     private String name;

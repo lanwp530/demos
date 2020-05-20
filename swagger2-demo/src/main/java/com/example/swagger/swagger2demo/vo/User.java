@@ -11,6 +11,7 @@ import lombok.Data;
 @Data
 @ApiModel
 public class User {
+
     private Integer id;
     private String name;
 
