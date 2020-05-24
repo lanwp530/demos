@@ -1,0 +1,47 @@
+server:
+  port: 8080
+spring:
+  profiles:
+    # 默认
+    active:  default
+
+mybatis:
+#  config-location: classpath:mybatis/mybatis-config.xml
+  type-aliases-package: com.lwp.example.springbootmybatis.model
+  mapper-locations: classpath:mapper/**/*.xml
+---
+spring:
+  profiles: default
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # mysql8 jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
+    # jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8
+    # mysql5 jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
+    url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    # 默认
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      # 不配置默认与maximum-pool-size相同
+      minimum-idle: 5
+      # 连接池最大连接数，默认是10
+      maximum-pool-size: 20
+      connection-test-query: SELECT 1
+
+---
+spring:
+  profiles: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 123456
+    # 默认
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      # 不配置默认与maximum-pool-size相同
+      # minimum-idle: 5
+      # 连接池最大连接数，默认是10
+      maximum-pool-size: 20
+      connection-test-query: SELECT 1

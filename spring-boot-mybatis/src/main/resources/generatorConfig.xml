@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <!-- resource：指定**classpath**下的属性文件 url:可以指定文件系统上的特定位置，例如file:///C:/myfolder/generatorConfig.properties -->
+    <properties resource="generatorConfig.properties" />
+
+    <!--
+    配置该元素只需要注意如果JDBC驱动不在**classpath**下，就需要通过<classPathEntry>元素引入jar包
+    <classPathEntry location="E:\mysql\mysql-connector-java-5.1.29.jar"/> 相对位置 或者文件的绝对路径-->
+    <!-- <classPathEntry  location="${driver.class.path}" /> -->
+
+    <!-- conditional(默认,主键为1个字段则不重新生成类)|flat(只生成一个类)|hierarchical(主键,一般字段,blob字段都生成单独的类) -->
+    <context id="mysqlContext" targetRuntime="MyBatis3" defaultModelType="flat">
+        <!-- 默认beginningDelimiter=' endingDelimiter='-->
+        <property name="beginningDelimiter" value="`"/>
+        <property name="endingDelimiter" value="`"/>
+        <property name="javaFileEncoding" value="UTF-8" />
+        <!-- 0 entity实现 序列化接口 -->
+        <plugin type="org.mybatis.generator.plugins.SerializablePlugin" />
+
+        <commentGenerator>
+            <property name="suppressAllComments" value="false"/>
+            <property name="addRemarkComments" value="true"/>
+            <!-- suppressAllComments设置成true后 suppressDate也不显示-->
+            <property name="suppressDate" value="true"/>
+        </commentGenerator>
+
+        <jdbcConnection connectionURL="${url}" driverClass="${driver}"
+                        password="${password}" userId="${username}" />
+
+        <javaTypeResolver></javaTypeResolver>
+
+        <!--生成Model(PO)实体类存放位置  enableSubPackagesg根据表的catalog生成子包-->
+        <javaModelGenerator targetPackage="${basePackage}.model"
+                            targetProject="${targetProject}" >
+            <property name="enableSubPackages" value="true" />
+            <property name="trimStrings" value="true" />
+        </javaModelGenerator>
+
+        <!--生成映射文件存放位置,不需要映射文件删除即可-->
+        <!--<sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources" >-->
+        <sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources" >
+            <property name="enableSubPackages" value="true" />
+        </sqlMapGenerator>
+
+        <!--生成Dao类存放位置-->
+        <javaClientGenerator targetPackage="${basePackage}.mapper"
+                             targetProject="${targetProject}" type="XMLMAPPER" />
+        <!-- 生成所有表可以使用sql通配符, 会增加目录 test
+        <table catalog="test" schema="test" tableName="%"> -->
+        <table schema="test" tableName="%"/>
+        <!--<table schema="test" tableName="blog">
+            <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+        </table>-->
+    </context>
+</generatorConfiguration>
