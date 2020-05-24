@@ -9,6 +9,8 @@ mybatis:
 #  config-location: classpath:mybatis/mybatis-config.xml
   type-aliases-package: com.lwp.example.springbootmybatis.model
   mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 ---
 spring:
   profiles: default
